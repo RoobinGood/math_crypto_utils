@@ -1,10 +1,11 @@
 import random
 import math
 
-def writeRow(i, a, q, x, y, string):
-    print string.format(i, a, q, x, y) 
 
 def extEuclid(a01, a02, modulus=False):
+    def writeRow(i, a, q, x, y, string):
+        print string.format(i, a, q, x, y) 
+    
     string = ("| {:>" + str(max(2, len(str(a01)))) + "} ")*5 + "|"
     i = 0
     a1, a2 = a01, a02
@@ -20,36 +21,27 @@ def extEuclid(a01, a02, modulus=False):
 
     while (a2 != 0):
         i += 1
-        
         t = a2
-        a2 = (a1 - q*a2)
-        if (modulus):
-            a2 %= a01
+        a2 = (a1 - q*a2) % a01 if (modulus) else a1 - q*a2
         a1 = t
 
         if (a2 != 0):
             t = x2
-            x2 = (x1 - q*x2)
-            if (modulus):
-                x2 %= a01
+            x2 = (x1 - q*x2) % a01 if (modulus) else x1 - q*x2
             x1 = t
 
             t = y2
-            y2 = (y1 - q*y2)
-            if (modulus):
-                y2 %= a01
+            y2 = (y1 - q*y2) % a01 if (modulus) else y1 - q*y2
             y1 = t
             
             q = a1/a2
-            
             writeRow(i, a2, q, x2, y2, string)
         else:
             writeRow(i, a2, "", "", "", string)
-    result = a01*x2+a02*y2
-    if (modulus):
-        result %= a01
+    result = (a01*x2+a02*y2) % a01 if (modulus) else a01*x2+a02*y2
     print "{} * {} + {} * {} = {}".format(a01, x2, a02, y2, result)
     return result, x2, y2
+
 
 def factorize(n):
     def isPrime(n):
@@ -99,6 +91,16 @@ def modPow(a, x, n):
 
 
 ### CIPHERS
+def RSACrackFactorize(n, e):
+    (p,q) = factorize(n)
+    eulerF = (p-1)*(q-1)
+    d = modInverse(eulerF, e)
+    print "p = {}, q = {}".format(p, q)
+    print "eulerF(n) = {}".format(eulerF)
+    print "d = {}".format(d)
+    return d
+
+
 def RSACipher():
     def showHelp():
         print '''Functions of RSA cipher:
@@ -110,6 +112,27 @@ def RSACipher():
         h - Help
         x - Exit'''
 
+    def showCrackHelp():
+        print '''Functions of RSA cipher crack:
+        0 - Factorize N
+
+        h - Help
+        x - Exit'''
+
+    def crack():
+        showCrackHelp()
+        while (True):
+            command = str(raw_input("\n[RSACipher Crack] Enter command: ")).strip()
+            if (command == "0"):
+                n = int(input("N = "))
+                e = int(input("e = "))
+                RSACrackFactorize(n, e)
+
+            elif (command == "h"):
+                showCrackHelp()
+            elif (command == "x"):
+                break
+
     showHelp()
     while (True):
         command = str(raw_input("\n[RSACipher] Enter command: ")).strip()
@@ -118,7 +141,7 @@ def RSACipher():
         if (command == "1"):
             pass
         elif (command == "2"):
-            pass
+            crack()
 
         elif (command == "h"):
             showHelp()
@@ -126,6 +149,7 @@ def RSACipher():
             break
         else:
             print "Unknown command"
+
 
 
 ### MAIN
@@ -142,6 +166,7 @@ def showHelp():
     h - Help
     x - Exit'''
 # TODO:
+# discret log
 # additive cipher crypt/decrypt/crack
 # affine cipher crypt/decrypt/crack
 # permutation cipher crypt/decrypt/crack
@@ -162,27 +187,37 @@ while (True):
         n = int(input("mod = "))
         t = int(input("a = "))
         mod(t, n)
+
     elif (command == "1"):
         n = int(input("mod = "))
         t = int(input("a = "))
         x = int(input("x = "))
         modPow(t, x, n)
+
     elif (command == "2"):
         n = int(input("a0 = "))
         t = int(input("a1 = "))
         extEuclid(n, t)
+
     elif (command == "3"):
         n = int(input("mod = "))
         t = int(input("a = "))
         modInverse(n, t)
+
     elif (command == "4"):
+        # Simple factorization from wiki
+        # TODO: Rho-Pollard or something faster
         x = int(input("x = "))
         print ", ".join(condense(factorize(x)))
+
     elif (command == "5"):
         RSACipher()
 
+
+
     elif (command == "h"):
         showHelp()
+
     elif (command == "x"):
         break
     else:
