@@ -22,27 +22,28 @@ def extEuclid(a01, a02, modulus=False):
     while (a2 != 0):
         i += 1
         t = a2
-        a2 = (a1 - q*a2) % a01 if (modulus) else a1 - q*a2
+        a2 = mod(a1 - q*a2, a01) if (modulus) else a1 - q*a2
         a1 = t
 
         if (a2 != 0):
             t = x2
-            x2 = (x1 - q*x2) % a01 if (modulus) else x1 - q*x2
+            x2 = mod(x1 - q*x2, a01) if (modulus) else x1 - q*x2
             x1 = t
 
             t = y2
-            y2 = (y1 - q*y2) % a01 if (modulus) else y1 - q*y2
+            y2 = mod(y1 - q*y2, a01) if (modulus) else y1 - q*y2
             y1 = t
             
             q = a1/a2
             writeRow(i, a2, q, x2, y2, string)
         else:
             writeRow(i, a2, "", "", "", string)
-    result = (a01*x2+a02*y2) % a01 if (modulus) else a01*x2+a02*y2
+    result = mod(a01*x2+a02*y2, a01) if (modulus) else a01*x2+a02*y2
     print "{} * {} + {} * {} = {}".format(a01, x2, a02, y2, result)
     return result, x2, y2
 
 
+### Factorize
 def factorize(n):
     def isPrime(n):
         return not [x for x in xrange(2,int(math.sqrt(n)))
@@ -72,21 +73,21 @@ def condense(L):
 ### GF(n) functions
 def modInverse(n, t):
     tt, x1, x2 = extEuclid(n, t, modulus=True)
-    if (t*x2 % n == 1):
+    if (mod(t*x2, n) == 1):
         print "{}^-1 = {} mod {}".format(t, x2, n)
         return x2
     else:
-        print "Something goes wrong: {} * {} = {}".format(t, x2, t*x2 % n)
+        print "Something goes wrong: {} * {} = {}".format(t, x2, mod(t*x2, n))
         return None
 
 def mod(a, n):
+    if (a<0):
+        a += n*(abs(a)/n + 1)
     result = a%n
-    print "{} = {} mod {}".format(a, result, n)
     return result
 
 def modPow(a, x, n):
-    result = (a**x)%n
-    print "{}^{} = {} mod {}".format(a, x, result, n)
+    result = mod(a**x, n)
     return result
 
 
@@ -100,6 +101,23 @@ def RSACrackFactorize(n, e):
     print "d = {}".format(d)
     return d
 
+def RSACrackWithEuler(n, euler, e):
+    t = mod(n - euler + 1, n)
+    b, c = mod(-t, n), n
+    disc = mod(modPow(b, 2, n) - 4*c, n)
+    disc = int(math.sqrt(disc))
+    p1, p2 = mod(-b+disc, n)/2, mod(-b-disc, n)/2
+    print "[{} = p*q\n[{} = (p-1)(q-1)".format(n, euler)
+    print "[{} = p*q\n[{} = -p-q+pq+1)".format(n, euler)
+    print "p+q = N-Euler+1 = {}\n".format(t)
+    print "[p*q = {}\n[p+q = {})".format(n, t)
+    print "q = T-p = {} - p".format(t)
+    print "p^2 + {}p + {} = 0".format(b, c)
+    print "disc = {}".format(disc**2)
+    print "sqrt(disc) = {}".format(disc)
+    print "p1 = {}, p2 = {}".format(p1, p2)
+    d = modInverse(euler, e)
+    print "d = {}".format(d)
 
 def RSACipher():
     def showHelp():
@@ -107,7 +125,6 @@ def RSACipher():
         0 - Encrypt
         1 - Decrypt
         2 - Crack
-            0 - Factorize N
 
         h - Help
         x - Exit'''
@@ -115,6 +132,7 @@ def RSACipher():
     def showCrackHelp():
         print '''Functions of RSA cipher crack:
         0 - Factorize N
+        1 - With Euler Known
 
         h - Help
         x - Exit'''
@@ -127,11 +145,18 @@ def RSACipher():
                 n = int(input("N = "))
                 e = int(input("e = "))
                 RSACrackFactorize(n, e)
+            elif (command == "1"):
+                n = int(input("N = "))
+                euler = int(input("Euler = "))
+                e = int(input("e = "))
+                RSACrackWithEuler(n, euler, e)
 
             elif (command == "h"):
                 showCrackHelp()
             elif (command == "x"):
                 break
+            else:
+                print "Unknown command"
 
     showHelp()
     while (True):
@@ -186,13 +211,13 @@ while (True):
     if (command == "0"):
         n = int(input("mod = "))
         t = int(input("a = "))
-        mod(t, n)
+        print "{} = {} mod {}".format(t, mod(t, n), n)
 
     elif (command == "1"):
         n = int(input("mod = "))
         t = int(input("a = "))
         x = int(input("x = "))
-        modPow(t, x, n)
+        print "{}^{} = {} mod {}".format(t, x, modPow(t, x, n), n)
 
     elif (command == "2"):
         n = int(input("a0 = "))
