@@ -1,6 +1,6 @@
 import random
 import math
-
+import string
 
 def extEuclid(a01, a02, modulus=False):
     def writeRow(i, a, q, x, y, string):
@@ -92,6 +92,7 @@ def modPow(a, x, n):
 
 
 ### CIPHERS
+### RSA
 def RSACrackFactorize(n, e):
     (p,q) = factorize(n)
     eulerF = (p-1)*(q-1)
@@ -122,8 +123,8 @@ def RSACrackWithEuler(n, euler, e):
 def RSACipher():
     def showHelp():
         print '''Functions of RSA cipher:
-        0 - Encrypt
-        1 - Decrypt
+        0 - Encrypt (pass)
+        1 - Decrypt (pass)
         2 - Crack
 
         h - Help
@@ -176,6 +177,62 @@ def RSACipher():
             print "Unknown command"
 
 
+### Affine Cipher
+def affineCipherEncode(a, b, text, alphabet):
+    return "".join([alphabet[mod(a*alphabet.index(c)+b, len(alphabet))] for c in text])
+
+def affineCipherDecode(a, b, text, alphabet):
+    ia = modInverse(len(alphabet), a)
+    return "".join([alphabet[mod((alphabet.index(c)-b)*ia, len(alphabet))] for c in text])
+
+def affineCipherCrack(m1, m2, c1, c2, alphabet):
+    def ord(c):
+        return alphabet.index(c)
+
+    n = len(alphabet)
+    a = mod( (ord(c1) - ord(c2))*modInverse(n, mod(ord(m1)-ord(m2), n)), n)
+    b = mod(ord(c1) - ord(m1)*a, n)
+    print "a = {}, b = {}".format(a, b)
+
+
+def AffineCipher():
+    def showHelp():
+        print '''Functions of affine cipher:
+        0 - Encrypt
+        1 - Decrypt
+        2 - Crack
+
+        h - Help
+        x - Exit'''
+
+    alphabet = string.ascii_uppercase
+
+    showHelp()
+    while (True):
+        command = str(raw_input("\n[Affine Cipher] Enter command: ")).strip()
+        if (command == "0"):
+            a = int(input("a = "))
+            b = int(input("b = "))
+            text = raw_input("text = ")
+            print affineCipherEncode(a, b, text, alphabet)
+        elif (command == "1"):
+            a = int(input("a = "))
+            b = int(input("b = "))
+            text = raw_input("text = ")
+            print affineCipherDecode(a, b, text, alphabet)
+        elif (command == "2"):
+            m1 = raw_input("m1 = ")
+            c1 = raw_input("c1 = ")
+            m2 = raw_input("m2 = ")
+            c2 = raw_input("c2 = ")
+            affineCipherCrack(m1, m2, c1, c2, alphabet)
+
+        elif (command == "h"):
+            showHelp()
+        elif (command == "x"):
+            break
+        else:
+            print "Unknown command"
 
 ### MAIN
 def showHelp():
@@ -186,6 +243,7 @@ def showHelp():
     3 - Inverse element
     4 - Factorization
     5 - RSA cipher crypt/decrypt/crack
+    6 - Affine cipher crypt/decrypt/crack
     To Be Continued
 
     h - Help
@@ -193,7 +251,6 @@ def showHelp():
 # TODO:
 # discret log
 # additive cipher crypt/decrypt/crack
-# affine cipher crypt/decrypt/crack
 # permutation cipher crypt/decrypt/crack
 # GF(p^n) polynom math
 #   (found primitive, brute roots, mult/div/add/subtr, modPow...)
@@ -237,6 +294,8 @@ while (True):
 
     elif (command == "5"):
         RSACipher()
+    elif (command == "6"):
+        AffineCipher()
 
 
 
